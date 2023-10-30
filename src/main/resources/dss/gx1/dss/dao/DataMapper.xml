@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="dss.gx1.dss.dao.DataMapper">
+    <insert id="insertModel" parameterType="pVModel" useGeneratedKeys="true" keyProperty="id">
+        insert into passenger_volume values (#{id} ,#{statisticsYear},#{statisticsMonth},#{volume},#{area})
+    </insert>
+
+    <select id="getPVModelsByDate" resultType="PVModel">
+        select * from passenger_volume where statistics_year = #{year} and statistics_month  = #{month}
+    </select>
+    <select id="getSortModelByAreaAndMonth" resultType="dss.gx1.dss.entity.PVModel">
+        select * from passenger_volume
+        where statistics_month = #{month}
+          and area = #{area}
+        order by statistics_year
+    </select>
+    <select id="getPVModelsByArea" resultType="dss.gx1.dss.entity.PVModel">
+        select * from passenger_volume where area = #{area}
+    </select>
+    <select id="getMaxVolume" resultType="dss.gx1.dss.entity.PVModel">
+        select area , max(volume) as volume from passenger_volume where statistics_year = #{year} and statistics_month  = #{month}
+    </select>
+    <select id="getModelsByYearAndMonth" resultType="dss.gx1.dss.entity.PVModel">
+        select * from passenger_volume where statistics_year >= #{beYear} and statistics_year &lt;= #{laYear}
+        and id not in
+        ((SELECT id FROM passenger_volume WHERE statistics_year = #{beYear} and statistics_month &lt;= #{beMonth}) UNION
+        (SELECT id FROM passenger_volume WHERE statistics_year = #{laYear} and statistics_month >= #{laMonth}))
+    </select>
+    <select id="getStatistics" resultType="java.util.Map">
+        SELECT distinct volume , area
+        from passenger_volume
+        WHERE volume =
+              (select MAX(volume) from passenger_volume WHERE statistics_year = #{year} and statistics_month = #{month})
+           or volume =
+              (select MIN(volume) from passenger_volume WHERE volume != 0 and statistics_year = #{year} and statistics_month = #{month})
+        order by volume desc
+    </select>
+</mapper>
